@@ -35,10 +35,6 @@ async def linear_cut(options_cut: model.CutOptions):
     cuts_count = options_cut.cut_count
     return service.linear_cut_method(original_length, cuts_length, cuts_count)
 
-@app.get("/stop")
-async def stopserver():
-    stop_uvicorn_process()
-    return {"message": "Сервер успешно остановлен"}
 
 @app.middleware("http")
 async def add_cors_header(request, call_next):

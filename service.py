@@ -84,18 +84,18 @@ def transpose_matrix(matrix):
 
 # линейный раскрой с помощью линейного целочисленного программирования
 def linear_cut_method(original_length, cuts_length, cuts_count):
-    print(original_length, cuts_length, cuts_count)
+    #print(original_length, cuts_length, cuts_count)
     # Создание экземпляра класса задачи
     prob = pulp.LpProblem("Paper Cutting Problem", pulp.LpMinimize)
     solver = pulp.GUROBI()
-    print(prob)
+    #print(prob)
 
     # количество необходимых отрезков
     count = len(cuts_length)
 
     # считаем начальные карты раскроя
     closest_combinations = find_closest_combinations(original_length, cuts_count, cuts_length, count)
-    print(closest_combinations)
+    #print(closest_combinations)
     # считаем остатки у каждой комбинации
     combinations = count_remains(closest_combinations, original_length, cuts_length)
 
@@ -108,8 +108,8 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
     # транспонируем комбинации для системы уравнений
     comb_transpose = transpose_matrix(new_comb)
 
-    print(comb_transpose)
-    print(new_comb)
+    #print(comb_transpose)
+    #print(new_comb)
 
     L = original_length
 
@@ -118,10 +118,10 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
 
     # количество переменных
     x = [pulp.LpVariable(f'x{i}', lowBound=0, cat='Integer') for i in range(1, num_variables + 1)]
-    print(x)
+    #print(x)
     # задаем ограничения для каждог уравнения
     coefficients = [combinations[i][-1] for i in range(len(combinations))]
-    print(coefficients)
+    #print(coefficients)
 
     prob += pulp.lpDot(coefficients, x)
 
@@ -139,13 +139,13 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
 
     # Вывод оптимального решения
     corresponding_column = []
-    print("Результат:")
+    #print("Результат:")
     for v in prob.variables():
         if v.varValue != 0.0:
             var_index = int(v.name[1:]) - 1  # Получение индекса переменной из имени
             for j in range(int(v.varValue)):
                 corresponding_column.append(combinations[var_index])
-            print(v.name, "=", v.varValue)
+            #print(v.name, "=", v.varValue)
 
     for i in range(len(corresponding_column)):
         #print(corresponding_column[i])
@@ -160,7 +160,7 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
         #str_res += " + " + str(remain) + " " + " = " + str(L)
         # print(corresponding_column[i])
         #print(str_res)
-    print("Суммарная потеря материала:", pulp.value(prob.objective))
-    print(corresponding_column)
+    #print("Суммарная потеря материала:", pulp.value(prob.objective))
+    #print(corresponding_column)
 
     return corresponding_column
