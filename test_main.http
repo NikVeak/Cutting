@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Test your FastAPI endpoints
 
 GET http://127.0.0.1:8000/test_linear
@@ -9,3 +10,16 @@ POST http://127.0.0.1:8000/linear-cut
 Accept: application/json
 
 ###
+=======
+# Test your FastAPI endpoints
+
+GET http://127.0.0.1:8000/test_linear
+Accept: application/json
+
+###
+
+POST http://127.0.0.1:8000/linear-cut
+Accept: application/json
+
+###
+>>>>>>> origin/main
