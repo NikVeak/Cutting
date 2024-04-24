@@ -1,70 +1,48 @@
 import pulp
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-# подсчет комбинаций из заданного количества
-def find_closest_combinations(target, limits, prices, count):
-    combinations = []
+""" здесь начинается описание сервисных функций"""
+""" %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
 
-    def find_combination(_sum, index, current):
-        if index == count:
-            if _sum <= target:
-                combinations.append(current[:])
-            return
+# функция поэлементного сравнения двух массивов
+# ----------------------------------------------------------------------------------------------------------------------
+def compare_equal(arr1, arr2):
+    for el1, el2 in zip(arr1, arr2):
+        if el1 != el2:
+            return True
+        else:
+            return False
+# ----------------------------------------------------------------------------------------------------------------------
 
-        for i in range(limits[index] + 1):
-            new_sum = _sum + i * prices[index]
-            if new_sum <= target:
-                current.append(i)
-                find_combination(new_sum, index + 1, current)
-                current.pop()
-            else:
-                break
+# функция печати массива
+# ----------------------------------------------------------------------------------------------------------------------
+def print_arr(A):
+    for i in range(len(A)):
+        print(A[i])
+# ----------------------------------------------------------------------------------------------------------------------
 
-    find_combination(0, 0, [])
-    return [list(map(lambda x, y: x * y, combination, prices)) for combination in combinations]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-def count_remains(comb, L, cuts):
+# поэлементное суммирование массива
+# ----------------------------------------------------------------------------------------------------------------------
+def sum_array(arr1, arr2):
     result = []
-    for i in range(len(comb)):
-        sum_comb = sum(comb[i])
-        remain = L - sum_comb
-        comb[i].append(remain)
-
-    for i in range(len(comb)):
-        remain = comb[i][-1]
-
-        for cut in range(len(cuts)):
-            if remain > cuts[cut]:
-                comb[i].append(1)
-
-    for i in range(len(comb)):
-        flag = comb[i][-1]
-        if flag != 1:
-            result.append(comb[i])
-
+    for i in range(len(arr1)):
+        # Суммируем элементы поэлементно первых двух массивов
+        sum_elements = arr1[i] + arr2[i]
+        result.append(sum_elements)
     return result
 
+# поэлементное сравнение элементов на превышение
+# ----------------------------------------------------------------------------------------------------------------------
+def sum_and_compare(arr1, arr2, arr3):
+    result = sum_array(arr1, arr2)
+    for i in range(len(result)):
+        if result[i] > arr3[i]:
+            return False
+    return True
+# ----------------------------------------------------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------------------------------------------------
-# подсчет реза каждого размера
-def do_count_cut(comb, cuts):
-    for i in range(len(comb)):
-        for j in range(len(cuts)):
-            comb[i][j] = int(comb[i][j] / cuts[j])
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------------------------------------------------
 # транспонирование матрицы
+# ----------------------------------------------------------------------------------------------------------------------
 def transpose_matrix(matrix):
     rows, cols = len(matrix), len(matrix[0])
     transposed = [[0 for _ in range(rows)] for _ in range(cols)]
@@ -74,93 +52,98 @@ def transpose_matrix(matrix):
             transposed[j][i] = matrix[i][j]
 
     return transposed
+# ----------------------------------------------------------------------------------------------------------------------
 
+# составление всех возможных карт раскроя, а также остатков, получаемых из каждой карты
+# ----------------------------------------------------------------------------------------------------------------------
+def linear_cutting(length, cut_lengths, cut_counts):
+    def generate_cuts(length, cut_lengths, cut_counts, current_cut, result, remainders):
+        if not cut_lengths:
+            result.append(current_cut.copy() + cut_counts)
+            remainders.append(length)
+            return
 
-# -----------------------------------------------------------------------------------------------------------------------
+        for i in range(min(length // cut_lengths[0], cut_counts[0]) + 1):
+            generate_cuts(length - i * cut_lengths[0], cut_lengths[1:], cut_counts[1:], current_cut + [i], result,
+                          remainders)
 
+    result = []
+    remainders = []
+    generate_cuts(length, cut_lengths, cut_counts, [], result, remainders)
+    return result, remainders
 
-# [print(i,"ый вариант", combinations[i]) for i in range(len(combinations))]
-# [print(comb_transpose[i]) for i in range(len(comb_transpose))]
+# ----------------------------------------------------------------------------------------------------------------------
+""" %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+""" здесь заканчивается описание сервисных функци"""
 
-# линейный раскрой с помощью линейного целочисленного программирования
+""" здесь начинается описание методов решения задач раскроя"""
+""" %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+# решение задачи линейного раскроя методом линейного программирования
+# ----------------------------------------------------------------------------------------------------------------------
 def linear_cut_method(original_length, cuts_length, cuts_count):
-    #print(original_length, cuts_length, cuts_count)
-    # Создание экземпляра класса задачи
-    prob = pulp.LpProblem("Paper Cutting Problem", pulp.LpMinimize)
-    solver = pulp.GUROBI()
-    #print(prob)
+    # создаем карты раскроя и остатки
+    possible_cuts, remainders = linear_cutting(original_length, cuts_length, cuts_count)
 
-    # количество необходимых отрезков
-    count = len(cuts_length)
+    # транспонируем матрицу для системы уравнений
+    A = transpose_matrix(possible_cuts)
 
-    # считаем начальные карты раскроя
-    closest_combinations = find_closest_combinations(original_length, cuts_count, cuts_length, count)
-    #print(closest_combinations)
-    # считаем остатки у каждой комбинации
-    combinations = count_remains(closest_combinations, original_length, cuts_length)
+    # создаем описание задачи раскроя
+    prob = pulp.LpProblem("Cutting Problem", pulp.LpMinimize)
 
-    # преобразуем комбинации к нужному виду
-    do_count_cut(combinations, cuts_length)
-
-    # сохраняем комбинации без остатков
-    new_comb = [combinations[i][:-1] for i in range(len(combinations))]
-
-    # транспонируем комбинации для системы уравнений
-    comb_transpose = transpose_matrix(new_comb)
-
-    #print(comb_transpose)
-    #print(new_comb)
-
-    L = original_length
-
-    # количество переменных = количеству комбинаций
-    num_variables = len(combinations)
-
-    # количество переменных
+    # создаем переменные, одна переменная - вариант раскроя
+    num_variables = len(possible_cuts)
     x = [pulp.LpVariable(f'x{i}', lowBound=0, cat='Integer') for i in range(1, num_variables + 1)]
-    #print(x)
-    # задаем ограничения для каждог уравнения
-    coefficients = [combinations[i][-1] for i in range(len(combinations))]
-    #print(coefficients)
 
-    prob += pulp.lpDot(coefficients, x)
+    # задаем функцию, которую нужно минизировать
+    prob += pulp.lpDot(remainders, x)
 
-    # задаем коэффициенты перед переменными
-    constraints_coefficients = [tuple(comb) for comb in comb_transpose]
-
-    # задаем правую часть уравнения
+    # задаем ограничения (коэффициенты справа)
     rhs_values = cuts_count
 
+    # строим матрицу коэффициентов
+    constraints_coefficients = [tuple(comb) for comb in A]
+
+    # составляем систему уравнений
     for i, constraint_coefficients in enumerate(constraints_coefficients):
         prob += pulp.lpDot(constraint_coefficients, x) == rhs_values[i]
 
-    # Решение задачи
+    # решаем систему уравнений
     prob.solve()
 
     # Вывод оптимального решения
-    corresponding_column = []
-    #print("Результат:")
+    result_maps = []
     for v in prob.variables():
         if v.varValue != 0.0:
             var_index = int(v.name[1:]) - 1  # Получение индекса переменной из имени
             for j in range(int(v.varValue)):
-                corresponding_column.append(combinations[var_index])
-            #print(v.name, "=", v.varValue)
+                result_maps.append(possible_cuts[var_index])
+            print(v.name, "=", v.varValue)
 
-    for i in range(len(corresponding_column)):
-        #print(corresponding_column[i])
-        #str_res = ""
-        remain = 0
-        for j in range(len(corresponding_column[i]) - 1):
-            if corresponding_column[i][j] != 0:
-                remain += corresponding_column[i][j] * cuts_length[j]
-                #str_res += "| " + str(cuts_length[j]) + " x" + str(corresponding_column[i][j]) + " |"
+    print("Суммарная потеря материала:", pulp.value(prob.objective))
+    print_arr(result_maps)
 
-        #remain = L - remain
-        #str_res += " + " + str(remain) + " " + " = " + str(L)
-        # print(corresponding_column[i])
-        #print(str_res)
-    #print("Суммарная потеря материала:", pulp.value(prob.objective))
-    #print(corresponding_column)
+    return result_maps
+# ----------------------------------------------------------------------------------------------------------------------
 
-    return corresponding_column
+# решение задачи линейного раскроя жадным алгоритмом
+# ----------------------------------------------------------------------------------------------------------------------
+def find_optimal_maps(original_length, cuts_length, counts):
+    maps, remains = linear_cutting(original_length, cuts_length, counts)
+    for i in range(len(maps)):
+        maps[i].append(remains[i])
+    sorted_maps = sorted(maps, key=lambda x: (-x[0], x[-1]))
+    selected_maps = []
+    current_counts = [0]*len(counts)
+    for i in range(len(sorted_maps)):
+        if sorted_maps[i][-1] == 6000:
+            continue
+        temp_map = sorted_maps[i]
+        temp_map = temp_map[:-1]
+        if sum_and_compare(temp_map, current_counts, counts):
+            selected_maps.append(sorted_maps[i])
+            current_counts = sum_array(current_counts, temp_map)
+
+    print_arr(selected_maps)
+    return selected_maps
+# ----------------------------------------------------------------------------------------------------------------------
+""" здесь заканчивается описание сервисных функций"""

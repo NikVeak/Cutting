@@ -10,7 +10,7 @@ app = FastAPI()
 # Настройка CORS middleware
 origins = [
     "http://localhost",
-    "http://localhost:3000",
+    "https://localhost:3000",
 ]
 
 app.add_middleware(
@@ -27,6 +27,10 @@ async def test_linear_cut():
     cuts_count = [10, 3, 6, 9, 10]
     return service.linear_cut_method(original_length, cuts_length, cuts_count)
 
+@app.get("/test_bivariate")
+async def test_bivariate():
+    pass
+
 
 @app.post("/linear-cut/", tags=["linear-cut"])
 async def linear_cut(options_cut: model.CutOptions):
@@ -35,6 +39,14 @@ async def linear_cut(options_cut: model.CutOptions):
     cuts_count = options_cut.cut_count
     return service.linear_cut_method(original_length, cuts_length, cuts_count)
 
+
+@app.post("/linear-cut-dynamic", tags=["linear-cut-dynamic"])
+
+@app.post("/")
+async def bivariate_cut(options_cut: model.CutOptions):
+    original_length = options_cut.original_length
+    cuts_length = options_cut.cut_length
+    cuts_count = options_cut.cut_count
 
 @app.middleware("http")
 async def add_cors_header(request, call_next):
