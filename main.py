@@ -41,8 +41,13 @@ async def linear_cut(options_cut: model.CutOptions):
 
 
 @app.post("/linear-cut-dynamic", tags=["linear-cut-dynamic"])
+async def linear_cut(options_cut: model.CutOptions):
+    original_length = options_cut.original_length
+    cuts_length = options_cut.cut_length
+    cuts_count = options_cut.cut_count
+    return service.find_optimal_maps(original_length, cuts_length, cuts_count)
 
-@app.post("/")
+@app.post("/bivariate-cut")
 async def bivariate_cut(options_cut: model.CutOptions):
     original_length = options_cut.original_length
     cuts_length = options_cut.cut_length
