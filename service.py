@@ -3,6 +3,35 @@ import pulp
 
 """ здесь начинается описание сервисных функций"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+# функция приведения результатов раскроя к нужному виду
+# ----------------------------------------------------------------------------------------------------------------------
+def reсycle_maps(original_length, cuts_length, maps):
+    result_maps = []
+    if len(cuts_length) != len(maps[0]):
+        for i in range(len(maps)):
+            map = []
+            for j in range(len(maps[i])-1):
+                if maps[i][j] != 0:
+                    for k in range(maps[i][j]):
+                        map.append(cuts_length[j])
+            map.append(maps[i][-1])
+            result_maps.append(map)
+    else:
+        for i in range(len(maps)):
+            map = []
+            summ = 0
+            for j in range(len(maps[i])):
+                if maps[i][j] != 0:
+                    for k in range(maps[i][j]):
+                        summ += cuts_length[j]
+                        map.append(cuts_length[j])
+            map.append(original_length - summ)
+            result_maps.append(map)
+
+    return result_maps
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 # функция поэлементного сравнения двух массивов
 # ----------------------------------------------------------------------------------------------------------------------
@@ -121,7 +150,6 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
 
     print("Суммарная потеря материала:", pulp.value(prob.objective))
     print_arr(result_maps)
-
     return result_maps
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -132,10 +160,11 @@ def find_optimal_maps(original_length, cuts_length, counts):
     for i in range(len(maps)):
         maps[i].append(remains[i])
     sorted_maps = sorted(maps, key=lambda x: (-x[0], x[-1]))
+    #print_arr(sorted_maps)
     selected_maps = []
     current_counts = [0]*len(counts)
     for i in range(len(sorted_maps)):
-        if sorted_maps[i][-1] == 6000:
+        if sorted_maps[i][-1] == original_length:
             continue
         temp_map = sorted_maps[i]
         temp_map = temp_map[:-1]
