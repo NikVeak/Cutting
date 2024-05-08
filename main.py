@@ -1,11 +1,8 @@
-import asyncio
-
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import service
 import model
-import threading
 
 app = FastAPI()
 
@@ -22,24 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# Функция для решения проблемы с тайм-аутом
-async def solve_with_timeout(timeout, original_length, cuts_length, cuts_count):
-    # Создаем отдельный event loop
-    loop = asyncio.get_running_loop()
-
-    try:
-        # Запускаем создание проблемы и решение в отдельном таске
-        result = await asyncio.wait_for(
-            loop.run_in_executor(None,
-                                 service.linear_cut_method(original_length, cuts_length, cuts_count)), timeout)
-        return result
-    except asyncio.TimeoutError:
-        return []
-        # Если произошел тайм-аут, вызываем исключение HTTPException
-        # raise HTTPException(status_code=408, detail=f"Не удалось найти решение за {timeout} секунд.")
-
 
 @app.get("/test_linear")
 async def test_linear_cut():
