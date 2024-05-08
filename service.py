@@ -1,5 +1,6 @@
+import timeout_decorator
 import pulp
-
+from pulp import PULP_CBC_CMD
 
 """ здесь начинается описание сервисных функций"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
@@ -10,7 +11,7 @@ def reсycle_maps(original_length, cuts_length, maps):
     if len(cuts_length) != len(maps[0]):
         for i in range(len(maps)):
             map = []
-            for j in range(len(maps[i])-1):
+            for j in range(len(maps[i]) - 1):
                 if maps[i][j] != 0:
                     for k in range(maps[i][j]):
                         map.append(cuts_length[j])
@@ -41,6 +42,8 @@ def compare_equal(arr1, arr2):
             return True
         else:
             return False
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # функция печати массива
@@ -48,6 +51,8 @@ def compare_equal(arr1, arr2):
 def print_arr(A):
     for i in range(len(A)):
         print(A[i])
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # поэлементное суммирование массива
@@ -60,6 +65,7 @@ def sum_array(arr1, arr2):
         result.append(sum_elements)
     return result
 
+
 # поэлементное сравнение элементов на превышение
 # ----------------------------------------------------------------------------------------------------------------------
 def sum_and_compare(arr1, arr2, arr3):
@@ -68,6 +74,8 @@ def sum_and_compare(arr1, arr2, arr3):
         if result[i] > arr3[i]:
             return False
     return True
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # транспонирование матрицы
@@ -81,6 +89,8 @@ def transpose_matrix(matrix):
             transposed[j][i] = matrix[i][j]
 
     return transposed
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # составление всех возможных карт раскроя, а также остатков, получаемых из каждой карты
@@ -101,12 +111,15 @@ def linear_cutting(length, cut_lengths, cut_counts):
     generate_cuts(length, cut_lengths, cut_counts, [], result, remainders)
     return result, remainders
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
 """ здесь заканчивается описание сервисных функци"""
 
 """ здесь начинается описание методов решения задач раскроя"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+
+
 # решение задачи линейного раскроя методом линейного программирования
 # ----------------------------------------------------------------------------------------------------------------------
 def linear_cut_method(original_length, cuts_length, cuts_count):
@@ -136,21 +149,25 @@ def linear_cut_method(original_length, cuts_length, cuts_count):
     for i, constraint_coefficients in enumerate(constraints_coefficients):
         prob += pulp.lpDot(constraint_coefficients, x) == rhs_values[i]
 
-    # решаем систему уравнений
-    prob.solve()
+    status = prob.solve(PULP_CBC_CMD(timeLimit=5))
 
-    # Вывод оптимального решения
-    result_maps = []
-    for v in prob.variables():
-        if v.varValue != 0.0:
-            var_index = int(v.name[1:]) - 1  # Получение индекса переменной из имени
-            for j in range(int(v.varValue)):
-                result_maps.append(possible_cuts[var_index])
-            print(v.name, "=", v.varValue)
+    if status == pulp.LpStatusOptimal:
+        result_maps = []
+        for v in prob.variables():
+            if v.varValue != 0.0:
+                var_index = int(v.name[1:]) - 1  # Получение индекса переменной из имени
+                for j in range(int(v.varValue)):
+                    result_maps.append(possible_cuts[var_index])
+                print(v.name, "=", v.varValue)
 
-    print("Суммарная потеря материала:", pulp.value(prob.objective))
-    print_arr(result_maps)
-    return result_maps
+        print("Суммарная потеря материала:", pulp.value(prob.objective))
+        print_arr(result_maps)
+        return result_maps
+    else:
+        print(pulp.LpStatus)
+        return []
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # решение задачи линейного раскроя жадным алгоритмом
@@ -160,9 +177,9 @@ def find_optimal_maps(original_length, cuts_length, counts):
     for i in range(len(maps)):
         maps[i].append(remains[i])
     sorted_maps = sorted(maps, key=lambda x: (-x[0], x[-1]))
-    #print_arr(sorted_maps)
+    # print_arr(sorted_maps)
     selected_maps = []
-    current_counts = [0]*len(counts)
+    current_counts = [0] * len(counts)
     for i in range(len(sorted_maps)):
         if sorted_maps[i][-1] == original_length:
             continue
@@ -174,5 +191,7 @@ def find_optimal_maps(original_length, cuts_length, counts):
 
     print_arr(selected_maps)
     return selected_maps
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 """ здесь заканчивается описание сервисных функций"""
