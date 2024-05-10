@@ -1,9 +1,46 @@
-import timeout_decorator
 import pulp
 from pulp import PULP_CBC_CMD
+import math
 
 """ здесь начинается описание сервисных функций"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+# функция для подготовки исходных заготовок с учетом угла реза
+# ----------------------------------------------------------------------------------------------------------------------
+def prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle, original_thickness):
+    length_cutting = 0
+    if cutting_angle == 0:
+        length_cutting = 0
+    elif cutting_angle == 30:
+        length_cutting = math.ceil((3 * original_thickness) / math.sqrt(3))
+    elif cutting_angle == 60:
+        length_cutting = math.ceil(math.sqrt(3) * original_thickness / 3)
+    elif cutting_angle == 45:
+        length_cutting = original_thickness
+
+    for i in range(len(cuts_length)):
+        cuts_length[i] = math.ceil(cuts_length[i] - 2*length_cutting)
+        cuts_length[i] += blade_thickness
+
+    original_length += blade_thickness
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+# функция приведения результатов раскроя к нужному виду (добавление остатков)
+# ----------------------------------------------------------------------------------------------------------------------
+def recycle_maps_remains(original_length, cuts_length, maps):
+    result_maps = []
+    for i in range(len(maps)):
+        map = []
+        summ = 0
+        for j in range(len(maps[i])):
+            if maps[i][j] != 0:
+                for k in range(maps[i][j]):
+                    summ += cuts_length[j]
+                    map.append(maps[i][j])
+        map.append(original_length - summ)
+        result_maps.append(map)
+    return result_maps
+
 # функция приведения результатов раскроя к нужному виду
 # ----------------------------------------------------------------------------------------------------------------------
 def reсycle_maps(original_length, cuts_length, maps):
@@ -192,6 +229,8 @@ def find_optimal_maps(original_length, cuts_length, counts):
     print_arr(selected_maps)
     return selected_maps
 
+def bivariate_cut(original_square, cuts_length, cuts_count):
+    pass
 
 # ----------------------------------------------------------------------------------------------------------------------
-""" здесь заканчивается описание сервисных функций"""
+""" здесь заканчивается описание методов раскроя"""
