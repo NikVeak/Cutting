@@ -4,6 +4,15 @@ import math
 
 """ здесь начинается описание сервисных функций"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+# функция для восстановления исходных данных с учетом угла реза и толщины лезвия
+# ----------------------------------------------------------------------------------------------------------------------
+def restore_cuts(maps, linear_cutting, blade_thickness):
+    for i in range(len(maps)):
+        for j in range(len(maps[i])):
+            if j != len(maps) - 2:
+                maps[i][j] = int(math.ceil(maps[i][j] + 2*linear_cutting - blade_thickness))
+# ----------------------------------------------------------------------------------------------------------------------
+
 # функция для подготовки исходных заготовок с учетом угла реза
 # ----------------------------------------------------------------------------------------------------------------------
 def prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle, original_thickness):
@@ -11,17 +20,19 @@ def prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle, o
     if cutting_angle == 0:
         length_cutting = 0
     elif cutting_angle == 30:
-        length_cutting = math.ceil((3 * original_thickness) / math.sqrt(3))
+        length_cutting = math.ceil((math.sqrt(3) * original_thickness) / 3)
     elif cutting_angle == 60:
-        length_cutting = math.ceil(math.sqrt(3) * original_thickness / 3)
+        length_cutting = math.ceil(math.sqrt(3) * original_thickness)
     elif cutting_angle == 45:
         length_cutting = original_thickness
 
     for i in range(len(cuts_length)):
         cuts_length[i] = math.ceil(cuts_length[i] - 2*length_cutting)
         cuts_length[i] += blade_thickness
+        cuts_length[i] = int(cuts_length[i])
 
     original_length += blade_thickness
+    return length_cutting
 
 # ----------------------------------------------------------------------------------------------------------------------
 
