@@ -41,7 +41,7 @@ async def linear_cut(options_cut: model.LinearCutOptions):
         new_maps = service.recycle_maps_remains(original_length, cuts_length, maps)
         result_maps = service.reсycle_maps(original_length, cuts_length, maps)
         service.restore_cuts(result_maps, length_cutting, blade_thickness)
-        return JSONResponse(content={"result_maps": result_maps, "maps:": new_maps})
+        return JSONResponse(content={"result_maps": result_maps, "maps": new_maps})
 
 
 @app.post("/linear-cut-dynamic", tags=["linear-cut-dynamic"])
@@ -57,7 +57,7 @@ async def linear_cut(options_cut: model.LinearCutOptions):
     maps = service.find_optimal_maps(original_length, cuts_length, cuts_count)
     result_maps = service.reсycle_maps(original_length, cuts_length, maps)
     service.restore_cuts(result_maps, length_cutting, blade_thickness)
-    return JSONResponse(content={"result_maps":result_maps, "maps:":maps})
+    return JSONResponse(content={"result_maps":result_maps, "maps":maps})
 
 
 @app.post("/linear-multi-cut-dynamic", tags=["linear-multi-cut-dynamic"])

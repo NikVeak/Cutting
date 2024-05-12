@@ -41,13 +41,13 @@ def prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle, o
 def recycle_maps_remains(original_length, cuts_length, maps):
     result_maps = []
     for i in range(len(maps)):
-        map = []
         summ = 0
+        map = []
         for j in range(len(maps[i])):
+            map.append(maps[i][j])
             if maps[i][j] != 0:
                 for k in range(maps[i][j]):
                     summ += cuts_length[j]
-                    map.append(maps[i][j])
         map.append(original_length - summ)
         result_maps.append(map)
     return result_maps
