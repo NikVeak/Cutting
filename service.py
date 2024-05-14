@@ -9,7 +9,9 @@ import math
 def restore_cuts(maps, linear_cutting, blade_thickness):
     for i in range(len(maps)):
         for j in range(len(maps[i])):
-            if j != len(maps) - 2:
+            #if j == 0:
+                #maps[i][j] = int(math.ceil(maps[i][j] + 2 * linear_cutting - blade_thickness))
+            if j != len(maps[i]) - 1:
                 maps[i][j] = int(math.ceil(maps[i][j] + 2*linear_cutting - blade_thickness))
 # ----------------------------------------------------------------------------------------------------------------------
 
