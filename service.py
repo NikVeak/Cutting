@@ -1,18 +1,50 @@
+import json
+
 import pulp
 from pulp import PULP_CBC_CMD
 import math
 
 """ здесь начинается описание сервисных функций"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+
+
+# функция состаления опций резки для бд
+def create_cutting_options(original_length, cuts_length, cuts_count, blade, thickness, angle):
+    dict_option = {}
+    dict_option['original_length'] = original_length
+    dict_option['cuts_length'] = cuts_length
+    dict_option['cuts_count'] = cuts_count
+    dict_option['blade'] = blade
+    dict_option['thickness'] = thickness
+    dict_option['angle'] = angle
+
+    return dict_option
+
+
+# функция записи в json файл
+def write_in_json(data, file_name):
+    try:
+        with open(file_name, 'r') as file:
+            data_json = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data_json = []
+
+    data_json.append(data)
+    with open(file_name, 'w') as file:
+        json.dump(data_json, file, indent=4)
+
+
 # функция для восстановления исходных данных с учетом угла реза и толщины лезвия
 # ----------------------------------------------------------------------------------------------------------------------
 def restore_cuts(maps, linear_cutting, blade_thickness):
     for i in range(len(maps)):
         for j in range(len(maps[i])):
-            #if j == 0:
-                #maps[i][j] = int(math.ceil(maps[i][j] + 2 * linear_cutting - blade_thickness))
+            # if j == 0:
+            # maps[i][j] = int(math.ceil(maps[i][j] + 2 * linear_cutting - blade_thickness))
             if j != len(maps[i]) - 1:
-                maps[i][j] = int(math.ceil(maps[i][j] + 2*linear_cutting - blade_thickness))
+                maps[i][j] = int(math.ceil(maps[i][j] + 2 * linear_cutting - blade_thickness))
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # функция для подготовки исходных заготовок с учетом угла реза
@@ -29,12 +61,13 @@ def prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle, o
         length_cutting = original_thickness
 
     for i in range(len(cuts_length)):
-        cuts_length[i] = math.ceil(cuts_length[i] - 2*length_cutting)
+        cuts_length[i] = math.ceil(cuts_length[i] - 2 * length_cutting)
         cuts_length[i] += blade_thickness
         cuts_length[i] = int(cuts_length[i])
 
     original_length += blade_thickness
     return length_cutting
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -53,6 +86,7 @@ def recycle_maps_remains(original_length, cuts_length, maps):
         map.append(original_length - summ)
         result_maps.append(map)
     return result_maps
+
 
 # функция приведения результатов раскроя к нужному виду
 # ----------------------------------------------------------------------------------------------------------------------
@@ -242,8 +276,10 @@ def find_optimal_maps(original_length, cuts_length, counts):
     print_arr(selected_maps)
     return selected_maps
 
+
 def bivariate_cut(original_square, cuts_length, cuts_count):
     pass
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 """ здесь заканчивается описание методов раскроя"""

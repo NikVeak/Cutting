@@ -1,3 +1,6 @@
+import json
+import pandas
+from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +9,7 @@ import model
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
+data_file = 'data.json'
 
 # Настройка CORS middleware
 origins = [
@@ -38,9 +42,19 @@ async def linear_cut(options_cut: model.LinearCutOptions):
     if len(maps) == 0:
         return []
     else:
+
         new_maps = service.recycle_maps_remains(original_length, cuts_length, maps)
         result_maps = service.reсycle_maps(original_length, cuts_length, maps)
         service.restore_cuts(result_maps, length_cutting, blade_thickness)
+
+        data_in_bd = service.create_cutting_options(original_length, cuts_length, cuts_count,
+                                                    blade_thickness, original_thickness, cutting_angle)
+        record_in_bd = {
+            'id': datetime.now().isoformat(),
+            'data_input': data_in_bd,
+            'data_result': new_maps
+        }
+        service.write_in_json(record_in_bd, data_file)
         return JSONResponse(content={"result_maps": result_maps, "maps": new_maps})
 
 
@@ -55,9 +69,18 @@ async def linear_cut(options_cut: model.LinearCutOptions):
     length_cutting = service.prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle,
                                           original_thickness)
     maps = service.find_optimal_maps(original_length, cuts_length, cuts_count)
+    data_in_bd = service.create_cutting_options(original_length, cuts_length, cuts_count,
+                                                blade_thickness, original_thickness, cutting_angle)
+    record_in_bd = {
+        'id': datetime.now().isoformat(),
+        'data_input': data_in_bd,
+        'data_result': maps
+    }
+    service.write_in_json(record_in_bd, data_file)
+
     result_maps = service.reсycle_maps(original_length, cuts_length, maps)
     service.restore_cuts(result_maps, length_cutting, blade_thickness)
-    return JSONResponse(content={"result_maps":result_maps, "maps":maps})
+    return JSONResponse(content={"result_maps": result_maps, "maps": maps})
 
 
 @app.post("/linear-multi-cut-dynamic", tags=["linear-multi-cut-dynamic"])
@@ -77,6 +100,12 @@ async def bivariate_cut(options_cut: model.SquareCutOptions):
     result_maps = service.bivariate_cut(original_square, cuts_length, cuts_count)
     return result_maps
 
+@app.get("/history-cut", tags=["history-cut"])
+async def history_cut():
+    with open(data_file, 'r') as file:
+        data = json.load(file)
+
+    desired_datas_data = []
 
 @app.middleware("http")
 async def add_cors_header(request, call_next):
