@@ -194,15 +194,102 @@ def linear_cutting(length, cut_lengths, cut_counts):
     remainders = []
     generate_cuts(length, cut_lengths, cut_counts, [], result, remainders)
     return result, remainders
-
-
 # ----------------------------------------------------------------------------------------------------------------------
+
+# составление всех возможных карт раскроя, с несколькими заготовками
+# ----------------------------------------------------------------------------------------------------------------------
+def linear_cutting_multi(original_lengths, cut_lengths, cut_counts):
+    results = []
+    remainders_list = []
+
+    for length in original_lengths:
+        result, remainders = linear_cutting(length, cut_lengths, cut_counts)
+        results.append(result)
+        remainders_list.append(remainders)
+
+    return results, remainders_list
+# ----------------------------------------------------------------------------------------------------------------------
+
+# преобразование трехмерного массива в двумерный при мульти линейном раскрое
+# ----------------------------------------------------------------------------------------------------------------------
+def merge_3d_array_to_2d(arr):
+    merged_array = []
+    for i in range(len(arr)):
+        for j in range(len(arr[i])):
+            merged_array.append(arr[i][j])
+    return merged_array
+# ----------------------------------------------------------------------------------------------------------------------
+
+# размещение заготовок в определенной площади
+# ----------------------------------------------------------------------------------------------------------------------
+def place_rectangles(total_area, smaller_rectangles, smaller_rect_count):
+    remaining_area = total_area
+    result = []
+
+    for i in range(len(smaller_rectangles)):
+        for j in range(smaller_rect_count[i]):
+            if smaller_rectangles[i] <= remaining_area:
+                result.append(smaller_rectangles[i])
+                remaining_area -= smaller_rectangles[i]
+
+    if remaining_area == 0:
+        return result
+    else:
+        return []
+# ----------------------------------------------------------------------------------------------------------------------
+
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
 """ здесь заканчивается описание сервисных функци"""
 
 """ здесь начинается описание методов решения задач раскроя"""
 """ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% """
+def linear_cut_method_multi(original_length, cuts_length, cuts_count):
+    # создаем карты раскроя и остатки
+    possible_cuts, remainders = linear_cutting_multi(original_length, cuts_length, cuts_count)
 
+    possible_cuts = merge_3d_array_to_2d(possible_cuts)
+    remainders = merge_3d_array_to_2d(remainders)
+
+    # транспонируем матрицу для системы уравнений
+    A = transpose_matrix(possible_cuts)
+
+    # создаем описание задачи раскроя
+    prob = pulp.LpProblem("Cutting Problem", pulp.LpMinimize)
+
+    # создаем переменные, одна переменная - вариант раскроя
+    num_variables = len(possible_cuts)
+    x = [pulp.LpVariable(f'x{i}', lowBound=0, cat='Integer') for i in range(1, num_variables + 1)]
+
+    # задаем функцию, которую нужно минизировать
+    prob += pulp.lpDot(remainders, x)
+
+    # задаем ограничения (коэффициенты справа)
+    rhs_values = cuts_count
+
+    # строим матрицу коэффициентов
+    constraints_coefficients = [tuple(comb) for comb in A]
+
+    # составляем систему уравнений
+    for i, constraint_coefficients in enumerate(constraints_coefficients):
+        prob += pulp.lpDot(constraint_coefficients, x) == rhs_values[i]
+
+    status = prob.solve(PULP_CBC_CMD(timeLimit=5))
+
+    if status == pulp.LpStatusOptimal:
+        result_maps = []
+        for v in prob.variables():
+            if v.varValue != 0.0:
+                var_index = int(v.name[1:]) - 1  # Получение индекса переменной из имени
+                for j in range(int(v.varValue)):
+                    result_maps.append(possible_cuts[var_index])
+                print(v.name, "=", v.varValue)
+
+        print("Суммарная потеря материала:", pulp.value(prob.objective))
+        print_arr(result_maps)
+        return result_maps
+    else:
+        print(pulp.LpStatus)
+        return []
 
 # решение задачи линейного раскроя методом линейного программирования
 # ----------------------------------------------------------------------------------------------------------------------
@@ -275,10 +362,13 @@ def find_optimal_maps(original_length, cuts_length, counts):
 
     print_arr(selected_maps)
     return selected_maps
+# ----------------------------------------------------------------------------------------------------------------------
 
-
+# размещение двумерных заготовок на площади
+# ----------------------------------------------------------------------------------------------------------------------
 def bivariate_cut(original_square, cuts_length, cuts_count):
-    pass
+    return place_rectangles(original_square, cuts_length, cuts_count)
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 # ----------------------------------------------------------------------------------------------------------------------
