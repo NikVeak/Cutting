@@ -68,7 +68,24 @@ async def linear_cut(options_cut: model.LinearCutOptions):
     length_cutting = service.prepare_cuts(original_length, cuts_length, blade_thickness, cutting_angle,
                                           original_thickness)
     maps = service.find_optimal_maps(original_length, cuts_length, cuts_count)
-    data_in_bd = service.create_cutting_options(original_length, cuts_length, cuts_count,
+
+    result_maps = service.reсycle_maps(original_length, cuts_length, maps)
+    service.restore_cuts(result_maps, length_cutting, blade_thickness)
+    return JSONResponse(content={"result_maps": result_maps, "maps": maps})
+
+
+@app.post("/linear-multi-cut", tags=["linear-multi-cut-dynamic"])
+async def linear_multi_cut(options_cut: model.LinearMultiCutOptions):
+    originals_length = options_cut.originals_length
+    cut_length = options_cut.cut_length
+    cut_count = options_cut.cut_count
+    blade_thickness = options_cut.blade_thickness
+    cutting_angle = options_cut.cutting_angle
+    original_thickness = options_cut.original_thickness
+    length_cutting = service.prepare_cuts(originals_length[0], cut_length, blade_thickness, cutting_angle,
+                                          original_thickness)
+    maps = service.linear_cut_method_multi(originals_length, cut_length, cut_count)
+    data_in_bd = service.create_cutting_options(originals_length[0], cut_length, cut_count,
                                                 blade_thickness, original_thickness, cutting_angle)
     record_in_bd = {
         'id': datetime.now().isoformat(),
@@ -76,19 +93,9 @@ async def linear_cut(options_cut: model.LinearCutOptions):
         'data_result': maps
     }
     service.write_in_json(record_in_bd, data_file)
-
-    result_maps = service.reсycle_maps(original_length, cuts_length, maps)
+    result_maps = service.reсycle_maps(originals_length[0], cut_length, maps)
     service.restore_cuts(result_maps, length_cutting, blade_thickness)
     return JSONResponse(content={"result_maps": result_maps, "maps": maps})
-
-
-@app.post("/linear-multi-cut-dynamic", tags=["linear-multi-cut-dynamic"])
-async def linear_multi_cut(options_cut: model.LinearMultiCutOptions):
-    originals_length = options_cut.originals_length
-    cut_length = options_cut.cut_length
-    cut_count = options_cut.cut_count
-    result_maps = service.bivariate_cut(originals_length, cut_length, cut_count)
-    return result_maps
 
 
 @app.post("/bivariate-cut")
