@@ -104,6 +104,7 @@ async def history_cut(start_date: str):
     df = pd.read_json(data_file)
     df['id'] = pd.to_datetime(df['id'])
     desired_datas_data = df[df['id'] >= start_date]
+
     return desired_datas_data
 
 @app.middleware("http")
