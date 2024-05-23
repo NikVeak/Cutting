@@ -366,8 +366,34 @@ def find_optimal_maps(original_length, cuts_length, counts):
 
 # размещение двумерных заготовок на площади
 # ----------------------------------------------------------------------------------------------------------------------
-def bivariate_cut(original_square, cuts_length, cuts_count):
-    return place_rectangles(original_square, cuts_length, cuts_count)
+def greedy_cutting_stock(pieces, material_width, material_height):
+    pieces = sorted(pieces, key=lambda x: x[0] * x[1], reverse=True)  # Сортируем заготовки по убыванию площади
+    remaining_material = material_width * material_height
+    used_pieces = []
+
+    while remaining_material > 0:
+        best_piece_index = -1
+        best_fit = 0
+
+        for i, piece in enumerate(pieces):
+            if piece[0] <= material_width and piece[1] <= material_height:
+                fit = min(material_width // piece[0], material_height // piece[1])
+                if fit > best_fit:
+                    best_fit = fit
+                    best_piece_index = i
+
+        if best_piece_index == -1:  # Не нашли подходящей заготовки
+            break
+
+        used_pieces.append(pieces[best_piece_index])
+        piece_width, piece_height = pieces[best_piece_index][0], pieces[best_piece_index][1]
+        area = piece_width * piece_height
+        remaining_material -= area
+        material_width -= piece_width
+        material_height -= piece_height
+        pieces.pop(best_piece_index)
+
+    return used_pieces
 # ----------------------------------------------------------------------------------------------------------------------
 
 

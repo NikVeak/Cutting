@@ -58,7 +58,7 @@ async def linear_cut(options_cut: model.LinearCutOptions):
 
 
 @app.post("/linear-cut-dynamic", tags=["linear-cut-dynamic"])
-async def linear_cut(options_cut: model.LinearCutOptions):
+async def linear_cut_dynamic(options_cut: model.LinearCutOptions):
     original_length = options_cut.original_length
     cuts_length = options_cut.cut_length
     cuts_count = options_cut.cut_count
@@ -100,10 +100,10 @@ async def linear_multi_cut(options_cut: model.LinearMultiCutOptions):
 
 @app.post("/bivariate-cut")
 async def bivariate_cut(options_cut: model.SquareCutOptions):
-    original_square = options_cut.original_square
-    cuts_length = options_cut.cut_length
-    cuts_count = options_cut.cut_count
-    result_maps = service.bivariate_cut(original_square, cuts_length, cuts_count)
+    pieces = options_cut.pieces
+    material_width = options_cut.material_width
+    material_height = options_cut.material_height
+    result_maps = service.greedy_cutting_stock(pieces, material_width, material_height)
     return result_maps
 
 @app.get("/history-cut", tags=["history-cut"])

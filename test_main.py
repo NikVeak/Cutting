@@ -37,7 +37,10 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_bivariate_cut_endpoint(self):
-        data = {"original_square": 6000, "cut_length": [1500, 1450, 1300, 1150, 1000], "cut_count": [10, 3, 6, 9, 10]}
+        pieces = [(2, 3, 15), (4, 5, 10), (3, 3, 20)]
+        material_width = 10
+        material_height = 10
+        data = {"pieces": pieces, "material_width": material_width, "material_height": material_height}
         response = self.client.post("/bivariate-cut", json=data)
         self.assertEqual(response.status_code, 200)
 

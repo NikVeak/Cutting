@@ -9,7 +9,7 @@ from service import (transpose_matrix,
                      merge_3d_array_to_2d,
                      place_rectangles,
                      linear_cutting_multi,
-                     bivariate_cut,
+                     greedy_cutting_stock,
                      linear_cut_method_multi)
 
 
@@ -159,10 +159,11 @@ class TestCuttingMethods(unittest.TestCase):
             print("Error, find_optimal_maps")
 
     def test_bivariate_cut(self):
-        total_area = 30
-        smaller_rectangles = [10, 8, 5, 4, 3]
-        smaller_rect_count = [1, 2, 2, 1, 0]
-        result = bivariate_cut(total_area, smaller_rectangles, smaller_rect_count)
+        pieces = [(2, 3, 15), (4, 5, 10), (3, 3, 20)]
+        material_width = 10
+        material_height = 10
+
+        result = greedy_cutting_stock(pieces, material_width, material_height)
 
         if result:
             print("OK, bivariate_cut")

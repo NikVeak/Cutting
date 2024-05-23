@@ -15,9 +15,9 @@ class LinearCutOptions(BaseModel):
     original_thickness: float
 
 class SquareCutOptions(BaseModel):
-    original_square: int
-    cut_length: List[int]
-    cut_count: List[int]
+    pieces: List[tuple]
+    material_height: int
+    material_width: int
 
 class LinearMultiCutOptions(BaseModel):
     # длина исходного материала
