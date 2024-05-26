@@ -166,6 +166,7 @@ class TestCuttingMethods(unittest.TestCase):
         result = greedy_cutting_stock(pieces, material_width, material_height)
 
         if result:
+            print(result)
             print("OK, bivariate_cut")
         else:
             print("Error, bivariate_cut")

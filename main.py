@@ -104,7 +104,7 @@ async def bivariate_cut(options_cut: model.SquareCutOptions):
     material_width = options_cut.material_width
     material_height = options_cut.material_height
     result_maps = service.greedy_cutting_stock(pieces, material_width, material_height)
-    return result_maps
+    return JSONResponse(content={"result_maps":result_maps})
 
 @app.get("/history-cut", tags=["history-cut"])
 async def history_cut(start_date: str):
@@ -112,7 +112,7 @@ async def history_cut(start_date: str):
     df['id'] = pd.to_datetime(df['id'])
     desired_datas_data = df[df['id'] >= start_date]
 
-    return desired_datas_data
+    return JSONResponse(content={"data":desired_datas_data})
 
 @app.middleware("http")
 async def add_cors_header(request, call_next):
