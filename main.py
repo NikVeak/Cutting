@@ -112,7 +112,7 @@ async def history_cut(start_date: str):
     df['id'] = pd.to_datetime(df['id'])
     desired_datas_data = df[df['id'] >= start_date]
 
-    return JSONResponse(content={"data":desired_datas_data})
+    return desired_datas_data
 
 @app.middleware("http")
 async def add_cors_header(request, call_next):
